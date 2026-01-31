@@ -124,6 +124,22 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.4);
         }
 
+        /* Current location indicator */
+        .current-location {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2ecc71;
+            padding: 6px 14px;
+            border-radius: 20px;
+            color: #1a1a2e;
+            font-size: 0.85em;
+            font-weight: 500;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
         /* Back link */
         .back-link {
             position: fixed;
@@ -144,12 +160,220 @@
             background: #3d3d54;
         }
 
+        /* Controls */
+        .map-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 1000;
+        }
+
+        .map-btn {
+            background: #2d2d44;
+            color: #e0e0e0;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            transition: background 0.2s;
+        }
+
+        .map-btn:hover {
+            background: #3d3d54;
+        }
+
+        .map-btn.active {
+            background: #e74c3c;
+            color: white;
+        }
+
+        /* Edit Mode Panel */
+        .edit-panel {
+            display: none;
+            position: fixed;
+            top: 120px;
+            right: 20px;
+            width: 350px;
+            max-height: calc(100vh - 200px);
+            background: #2d2d44;
+            border-radius: 8px;
+            color: #e0e0e0;
+            z-index: 1001;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            overflow: hidden;
+        }
+
+        .edit-panel.visible {
+            display: block;
+        }
+
+        .edit-panel-header {
+            padding: 12px 16px;
+            background: #3d3d54;
+            border-bottom: 1px solid #4d4d64;
+        }
+
+        .edit-panel-header h3 {
+            color: #7eb8da;
+            margin-bottom: 8px;
+        }
+
+        .edit-panel-header p {
+            font-size: 0.85em;
+            color: #a0a0a0;
+        }
+
+        .edit-panel-content {
+            padding: 12px 16px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .coord-display {
+            background: #1a1a2e;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .edit-panel-actions {
+            padding: 12px 16px;
+            border-top: 1px solid #4d4d64;
+            display: flex;
+            gap: 8px;
+        }
+
+        .edit-panel-actions button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+        }
+
+        .btn-primary {
+            background: #2ecc71;
+            color: #1a1a2e;
+        }
+
+        .btn-secondary {
+            background: #4a5568;
+            color: #e0e0e0;
+        }
+
+        /* Add marker form */
+        .add-marker-form {
+            display: none;
+            padding: 12px 16px;
+            border-top: 1px solid #4d4d64;
+        }
+
+        .add-marker-form.visible {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85em;
+            color: #a0a0a0;
+            margin-bottom: 4px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #4d4d64;
+            border-radius: 4px;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            font-size: 0.9em;
+        }
+
+        /* Edit mode indicator */
+        .edit-mode-banner {
+            display: none;
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #e74c3c;
+            padding: 6px 14px;
+            border-radius: 20px;
+            color: white;
+            font-size: 0.85em;
+            font-weight: 500;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .edit-mode-banner.visible {
+            display: block;
+        }
+
+        body.edit-mode .current-location {
+            display: none;
+        }
+
+        /* Marker list in edit panel */
+        .marker-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .marker-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 8px;
+            margin: 4px 0;
+            background: #1a1a2e;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+
+        .marker-list-item .name {
+            flex: 1;
+        }
+
+        .marker-list-item .coords {
+            color: #a0a0a0;
+            font-family: monospace;
+            font-size: 0.8em;
+        }
+
+        .marker-list-item .delete-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 2px 6px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-left: 8px;
+            font-size: 0.75em;
+        }
+
         /* Mobile adjustments */
         @media (max-width: 600px) {
             .title-overlay {
                 font-size: 1em;
                 padding: 8px 16px;
                 top: 10px;
+            }
+            .current-location, .edit-mode-banner {
+                top: 55px;
+                font-size: 0.75em;
             }
             .back-link {
                 top: 10px;
@@ -163,12 +387,19 @@
                 padding: 10px;
                 font-size: 0.8em;
             }
+            .edit-panel {
+                width: calc(100vw - 40px);
+                right: 20px;
+                left: 20px;
+            }
         }
     </style>
 </head>
 <body>
     <a href="https://publish.obsidian.md/elvensong" class="back-link">← Back to Campaign</a>
     <div class="title-overlay">Elvensong Campaign - World of Gryth</div>
+    <div class="current-location">📍 Current: Treston</div>
+    <div class="edit-mode-banner">✏️ EDIT MODE - Drag markers to reposition</div>
 
     <div class="legend">
         <h4>Legend</h4>
@@ -176,6 +407,55 @@
         <div class="legend-item"><span class="legend-marker region"></span> Regions</div>
         <div class="legend-item"><span class="legend-marker location"></span> Locations</div>
         <div class="legend-item"><span class="legend-marker town"></span> Towns</div>
+    </div>
+
+    <div class="map-controls">
+        <button class="map-btn" onclick="goToCurrentLocation()">📍 Current Location</button>
+        <button class="map-btn" onclick="showFullMap()">🗺️ Full Map</button>
+        <button class="map-btn" id="editModeBtn" onclick="toggleEditMode()">✏️ Edit Mode</button>
+    </div>
+
+    <!-- Edit Mode Panel -->
+    <div class="edit-panel" id="editPanel">
+        <div class="edit-panel-header">
+            <h3>✏️ Edit Mode</h3>
+            <p>Drag markers to reposition. Right-click map to add new markers.</p>
+        </div>
+        <div class="edit-panel-content">
+            <div class="coord-display" id="coordDisplay">
+                Click on map to see coordinates
+            </div>
+            <h4 style="margin-bottom: 8px; color: #7eb8da;">Markers</h4>
+            <div class="marker-list" id="markerList"></div>
+        </div>
+        <div class="add-marker-form" id="addMarkerForm">
+            <h4 style="margin-bottom: 10px; color: #7eb8da;">Add New Marker</h4>
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="newMarkerName" placeholder="e.g., City - Newtown">
+            </div>
+            <div class="form-group">
+                <label>Type</label>
+                <select id="newMarkerType">
+                    <option value="city">City</option>
+                    <option value="town">Town</option>
+                    <option value="region">Region</option>
+                    <option value="location">Location</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Position (click on map first)</label>
+                <input type="text" id="newMarkerCoords" readonly placeholder="Right-click on map to set position">
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-primary" onclick="addNewMarker()" style="flex: 1; padding: 8px; border: none; border-radius: 4px; cursor: pointer;">Add Marker</button>
+                <button class="btn-secondary" onclick="cancelAddMarker()" style="flex: 1; padding: 8px; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+            </div>
+        </div>
+        <div class="edit-panel-actions">
+            <button class="btn-primary" onclick="exportMarkers()">📋 Copy Marker Data</button>
+            <button class="btn-secondary" onclick="toggleEditMode()">Done</button>
+        </div>
     </div>
 
     <div id="map"></div>
@@ -187,101 +467,297 @@
         // ==== CONFIGURATION ====
         const PUBLISH_BASE_URL = 'https://publish.obsidian.md/elvensong/';
         const MAP_IMAGE_URL = './World Map.jpg';
-        const MAP_WIDTH = 2048;
-        const MAP_HEIGHT = 2048;
+
+        // Image is 8192x8192 pixels (square)
+        const IMG_WIDTH = 8192;
+        const IMG_HEIGHT = 8192;
+
+        // ==== CURRENT CAMPAIGN LOCATION ====
+        // Update this as the party moves!
+        const CURRENT_LOCATION = {
+            name: "Treston",
+            x: 1390,
+            y: 6470,
+            zoom: 0
+        };
 
         // ==== MARKER DATA ====
-        const markers = [
-            { name: "City - Treston", type: "city", lat: -4.210304260253906, lng: 3.3864593505859375 },
-            { name: "City - Silverwall", type: "city", lat: -3.9634552001953125, lng: 4.496928352322728 },
-            { name: "City - Shafthield", type: "city", lat: -4.282474517822266, lng: 2.9122390747070312 },
-            { name: "City - Treeheart", type: "city", lat: -4.433723449707031, lng: 3.928874969482422 },
-            { name: "City - Shugwood", type: "city", lat: -15.400390625, lng: 4.003875732421875 },
-            { name: "City - Irus-Halls", type: "city", lat: -14.343193054199219, lng: 6.639583587646484 },
-            { name: "City - Ustraga", type: "city", lat: -2.3504180908203125, lng: 2.401702880859375 },
-            { name: "Region - High Vel'Nora", type: "region", lat: -6.527923583984375, lng: 7.9871063232421875 },
-            { name: "Region - Eros", type: "region", lat: -8.4805908203125, lng: 6.339752197265625 },
-            { name: "Region - Alkan", type: "region", lat: -4.4703216552734375, lng: 1.819244384765625 },
-            { name: "Region - Q'Shar", type: "region", lat: -8.740341186523438, lng: 14.101760864257812 },
-            { name: "Region - The Thornmark", type: "region", lat: -2.699359893798828, lng: 4.7855224609375 },
-            { name: "Region - The Deadmoors", type: "region", lat: -3.104949951171875, lng: 3.477611541748047 },
-            { name: "Region - Eldvale", type: "region", lat: -2.1762924194335938, lng: 2.197040557861328 },
-            { name: "Region - The Discovery Coast", type: "region", lat: -3.5605087280273438, lng: 5.4624786376953125 },
-            { name: "Region - Silvaria", type: "region", lat: -4.738491058349609, lng: 3.7910499572753906 },
-            { name: "Region - Glaszar", type: "region", lat: -1.9861831665039062, lng: 3.908435821533203 },
-            { name: "Town - Beren-on-Lake", type: "town", lat: -4.082859039306641, lng: 3.6508140563964844 },
-            { name: "Location - Grey Rock Isle", type: "location", lat: -5.223838806152344, lng: 3.13360595703125 }
+        // Coordinates are in pixels on the 8192x8192 image
+        // x = horizontal position from left edge
+        // y = vertical position from TOP edge (will be converted for Leaflet)
+        let markers = [
+            { name: "City - Treston", type: "city", x: 1390, y: 1720 },
+            { name: "City - Silverwall", type: "city", x: 1843, y: 1620 },
+            { name: "City - Shafthield", type: "city", x: 1192, y: 1750 },
+            { name: "City - Treeheart", type: "city", x: 1608, y: 1815 },
+            { name: "City - Shugwood", type: "city", x: 1640, y: 6300 },
+            { name: "City - Irus-Halls", type: "city", x: 2720, y: 5870 },
+            { name: "City - Ustraga", type: "city", x: 983, y: 960 },
+            { name: "Region - High Vel'Nora", type: "region", x: 3270, y: 2670 },
+            { name: "Region - Eros", type: "region", x: 2597, y: 3470 },
+            { name: "Region - Alkan", type: "region", x: 745, y: 1825 },
+            { name: "Region - Q'Shar", type: "region", x: 5775, y: 3570 },
+            { name: "Region - The Thornmark", type: "region", x: 1960, y: 1105 },
+            { name: "Region - The Deadmoors", type: "region", x: 1423, y: 1270 },
+            { name: "Region - Eldvale", type: "region", x: 900, y: 890 },
+            { name: "Region - The Discovery Coast", type: "region", x: 2237, y: 1455 },
+            { name: "Region - Silvaria", type: "region", x: 1550, y: 1935 },
+            { name: "Region - Glaszar", type: "region", x: 1600, y: 810 },
+            { name: "Town - Beren-on-Lake", type: "town", x: 1494, y: 1670 },
+            { name: "Location - Grey Rock Isle", type: "location", x: 1283, y: 2135 }
         ];
 
+        // ==== STATE ====
+        let editMode = false;
+        let markerLayers = [];
+        let pendingMarkerCoords = null;
+
         // ==== MARKER ICONS ====
-        const createIcon = (color) => L.divIcon({
+        const createIcon = (color, isCurrentLocation = false) => L.divIcon({
             className: 'custom-marker',
-            html: `<svg width="25" height="41" viewBox="0 0 25 41" xmlns="http://www.w3.org/2000/svg">
-                <path fill="${color}" stroke="#fff" stroke-width="1.5" d="M12.5 0C5.6 0 0 5.6 0 12.5c0 10.9 12.5 28.5 12.5 28.5S25 23.4 25 12.5C25 5.6 19.4 0 12.5 0z"/>
+            html: `<svg width="32" height="48" viewBox="0 0 25 41" xmlns="http://www.w3.org/2000/svg">
+                <path fill="${color}" stroke="${isCurrentLocation ? '#FFD700' : '#fff'}" stroke-width="${isCurrentLocation ? '3' : '1.5'}" d="M12.5 0C5.6 0 0 5.6 0 12.5c0 10.9 12.5 28.5 12.5 28.5S25 23.4 25 12.5C25 5.6 19.4 0 12.5 0z"/>
                 <circle fill="#fff" cx="12.5" cy="12.5" r="5"/>
             </svg>`,
-            iconSize: [25, 41],
-            iconAnchor: [12.5, 41],
-            popupAnchor: [0, -35]
+            iconSize: [32, 48],
+            iconAnchor: [16, 48],
+            popupAnchor: [0, -45]
         });
 
         const icons = {
             city: createIcon('#e74c3c'),
             region: createIcon('#2ecc71'),
             location: createIcon('#9b59b6'),
-            town: createIcon('#f39c12')
+            town: createIcon('#f39c12'),
+            current: createIcon('#e74c3c', true)
         };
 
-        // ==== INITIALIZE MAP ====
-        const bounds = [[0, 0], [-MAP_HEIGHT / 100, MAP_WIDTH / 100]];
+        // ==== COORDINATE CONVERSION ====
+        // Convert from image pixels (y from top) to Leaflet coords (y from bottom)
+        function toLeaflet(x, y) {
+            return [IMG_HEIGHT - y, x];
+        }
 
+        // Convert from Leaflet coords back to image pixels
+        function fromLeaflet(lat, lng) {
+            return { x: Math.round(lng), y: Math.round(IMG_HEIGHT - lat) };
+        }
+
+        // ==== INITIALIZE MAP ====
         const map = L.map('map', {
             crs: L.CRS.Simple,
-            minZoom: -2,
-            maxZoom: 3,
+            minZoom: -3,
+            maxZoom: 2,
             zoomSnap: 0.25,
             zoomDelta: 0.5
         });
 
-        L.imageOverlay(MAP_IMAGE_URL, bounds).addTo(map);
-        map.fitBounds(bounds);
+        // Image bounds in Leaflet coordinates
+        const imageBounds = [[0, 0], [IMG_HEIGHT, IMG_WIDTH]];
+        L.imageOverlay(MAP_IMAGE_URL, imageBounds).addTo(map);
+
+        // Set max bounds with some padding
+        map.setMaxBounds([[-500, -500], [IMG_HEIGHT + 500, IMG_WIDTH + 500]]);
+
+        // Set initial view centered on current location
+        const startPos = toLeaflet(CURRENT_LOCATION.x, CURRENT_LOCATION.y);
+        map.setView(startPos, CURRENT_LOCATION.zoom);
 
         // ==== ADD MARKERS ====
-        markers.forEach(marker => {
-            const icon = icons[marker.type] || icons.location;
-            const displayName = marker.name.replace(/^(City|Region|Town|Location) - /, '');
-            const typeLabel = marker.type.charAt(0).toUpperCase() + marker.type.slice(1);
+        function createMarkers() {
+            // Clear existing markers
+            markerLayers.forEach(m => map.removeLayer(m));
+            markerLayers = [];
 
-            // Build Obsidian Publish URL
-            const notePath = marker.name.replace(/ /g, '+');
-            let folder = '';
-            if (marker.type === 'city') folder = 'Cities/';
-            else if (marker.type === 'region') folder = 'Regions/';
-            else if (marker.type === 'town') folder = 'Towns/';
-            else if (marker.type === 'location') folder = 'Locations/';
+            markers.forEach((marker, index) => {
+                const isCurrentLocation = marker.name.includes(CURRENT_LOCATION.name);
+                const icon = isCurrentLocation ? icons.current : (icons[marker.type] || icons.location);
+                const displayName = marker.name.replace(/^(City|Region|Town|Location) - /, '');
+                const typeLabel = marker.type.charAt(0).toUpperCase() + marker.type.slice(1);
 
-            const noteUrl = PUBLISH_BASE_URL + folder + notePath;
+                // Build Obsidian Publish URL
+                const notePath = marker.name.replace(/ /g, '+');
+                let folder = '';
+                if (marker.type === 'city') folder = 'Cities/';
+                else if (marker.type === 'region') folder = 'Regions/';
+                else if (marker.type === 'town') folder = 'Towns/';
+                else if (marker.type === 'location') folder = 'Locations/';
 
-            const popupContent = `
-                <div class="popup-title">${displayName}</div>
-                <div class="popup-type">${typeLabel}</div>
-                <a href="${noteUrl}" target="_blank" class="popup-link">View Details →</a>
-            `;
+                const noteUrl = PUBLISH_BASE_URL + folder + notePath;
 
-            L.marker([marker.lat, marker.lng], { icon: icon })
-                .bindPopup(popupContent)
-                .bindTooltip(displayName, {
-                    permanent: false,
-                    direction: 'top',
-                    offset: [0, -35]
+                const popupContent = `
+                    <div class="popup-title">${displayName}${isCurrentLocation ? ' 📍' : ''}</div>
+                    <div class="popup-type">${typeLabel}${isCurrentLocation ? ' • Current Location' : ''}</div>
+                    <a href="${noteUrl}" target="_blank" class="popup-link">View Details →</a>
+                `;
+
+                // Convert to Leaflet coordinates
+                const pos = toLeaflet(marker.x, marker.y);
+
+                const m = L.marker(pos, {
+                    icon: icon,
+                    draggable: editMode
                 })
-                .addTo(map);
+                    .bindPopup(popupContent)
+                    .bindTooltip(displayName + (isCurrentLocation ? ' (You are here)' : ''), {
+                        permanent: false,
+                        direction: 'top',
+                        offset: [0, -45]
+                    })
+                    .addTo(map);
+
+                // Handle drag end in edit mode
+                m.on('dragend', function(e) {
+                    const newPos = e.target.getLatLng();
+                    const pixelCoords = fromLeaflet(newPos.lat, newPos.lng);
+                    markers[index].x = pixelCoords.x;
+                    markers[index].y = pixelCoords.y;
+                    updateMarkerList();
+                    document.getElementById('coordDisplay').innerHTML =
+                        `<strong>${marker.name}</strong><br>Moved to: x: ${pixelCoords.x}, y: ${pixelCoords.y}`;
+                });
+
+                markerLayers.push(m);
+            });
+        }
+
+        createMarkers();
+
+        // ==== EDIT MODE ====
+        function toggleEditMode() {
+            editMode = !editMode;
+            document.body.classList.toggle('edit-mode', editMode);
+            document.getElementById('editModeBtn').classList.toggle('active', editMode);
+            document.getElementById('editPanel').classList.toggle('visible', editMode);
+            document.querySelector('.edit-mode-banner').classList.toggle('visible', editMode);
+
+            // Recreate markers with new draggable state
+            createMarkers();
+            updateMarkerList();
+        }
+
+        function updateMarkerList() {
+            const list = document.getElementById('markerList');
+            list.innerHTML = markers.map((m, i) => `
+                <div class="marker-list-item">
+                    <span class="name">${m.name.replace(/^(City|Region|Town|Location) - /, '')}</span>
+                    <span class="coords">x:${m.x} y:${m.y}</span>
+                    <button class="delete-btn" onclick="deleteMarker(${i})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function deleteMarker(index) {
+            if (confirm(`Delete ${markers[index].name}?`)) {
+                markers.splice(index, 1);
+                createMarkers();
+                updateMarkerList();
+            }
+        }
+
+        // ==== ADD NEW MARKER ====
+        map.on('contextmenu', function(e) {
+            if (!editMode) return;
+
+            const pixelCoords = fromLeaflet(e.latlng.lat, e.latlng.lng);
+            pendingMarkerCoords = pixelCoords;
+
+            document.getElementById('addMarkerForm').classList.add('visible');
+            document.getElementById('newMarkerCoords').value = `x: ${pixelCoords.x}, y: ${pixelCoords.y}`;
+            document.getElementById('newMarkerName').value = '';
+            document.getElementById('newMarkerName').focus();
         });
 
-        // Press 'R' to reset view
+        function addNewMarker() {
+            const name = document.getElementById('newMarkerName').value.trim();
+            const type = document.getElementById('newMarkerType').value;
+
+            if (!name) {
+                alert('Please enter a name');
+                return;
+            }
+            if (!pendingMarkerCoords) {
+                alert('Please right-click on the map to set position');
+                return;
+            }
+
+            markers.push({
+                name: name,
+                type: type,
+                x: pendingMarkerCoords.x,
+                y: pendingMarkerCoords.y
+            });
+
+            createMarkers();
+            updateMarkerList();
+            cancelAddMarker();
+        }
+
+        function cancelAddMarker() {
+            document.getElementById('addMarkerForm').classList.remove('visible');
+            pendingMarkerCoords = null;
+        }
+
+        // ==== EXPORT MARKERS ====
+        function exportMarkers() {
+            const code = `const markers = [\n${markers.map(m =>
+                `    { name: "${m.name}", type: "${m.type}", x: ${m.x}, y: ${m.y} }`
+            ).join(',\n')}\n];`;
+
+            navigator.clipboard.writeText(code).then(() => {
+                alert('Marker data copied to clipboard! Paste this into the index.html file to save your changes.');
+            }).catch(() => {
+                // Fallback for browsers that don't support clipboard API
+                const textarea = document.createElement('textarea');
+                textarea.value = code;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('Marker data copied to clipboard! Paste this into the index.html file to save your changes.');
+            });
+        }
+
+        // ==== SHOW COORDINATES ON CLICK ====
+        map.on('click', function(e) {
+            if (!editMode) return;
+            const pixelCoords = fromLeaflet(e.latlng.lat, e.latlng.lng);
+            document.getElementById('coordDisplay').innerHTML =
+                `Click position:<br><strong>x: ${pixelCoords.x}, y: ${pixelCoords.y}</strong>`;
+        });
+
+        // ==== CONTROL FUNCTIONS ====
+        function goToCurrentLocation() {
+            const pos = toLeaflet(CURRENT_LOCATION.x, CURRENT_LOCATION.y);
+            map.setView(pos, CURRENT_LOCATION.zoom, {
+                animate: true,
+                duration: 0.5
+            });
+        }
+
+        function showFullMap() {
+            map.fitBounds(imageBounds, {
+                animate: true,
+                duration: 0.5,
+                padding: [20, 20]
+            });
+        }
+
+        // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT') return; // Don't trigger while typing
+
             if (e.key === 'r' || e.key === 'R') {
-                map.fitBounds(bounds);
+                showFullMap();
+            }
+            if (e.key === 'c' || e.key === 'C') {
+                goToCurrentLocation();
+            }
+            if (e.key === 'e' || e.key === 'E') {
+                toggleEditMode();
+            }
+            if (e.key === 'Escape' && editMode) {
+                cancelAddMarker();
             }
         });
     </script>
