@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elvensong Campaign - World Map</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+        }
+
+        #map {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .leaflet-popup-content-wrapper {
+            background: #2d2d44;
+            color: #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+
+        .leaflet-popup-content {
+            margin: 12px 16px;
+        }
+
+        .leaflet-popup-tip {
+            background: #2d2d44;
+        }
+
+        .popup-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #7eb8da;
+            margin-bottom: 8px;
+        }
+
+        .popup-type {
+            font-size: 0.85em;
+            color: #a0a0a0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .popup-link {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 6px 12px;
+            background: #4a5568;
+            color: #e0e0e0;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.9em;
+            transition: background 0.2s;
+        }
+
+        .popup-link:hover {
+            background: #5a6578;
+        }
+
+        /* Legend */
+        .legend {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #2d2d44;
+            padding: 15px;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 0.9em;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+
+        .legend h4 {
+            margin-bottom: 10px;
+            color: #7eb8da;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+
+        .legend-marker {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .legend-marker.city { background: #e74c3c; }
+        .legend-marker.region { background: #2ecc71; }
+        .legend-marker.location { background: #9b59b6; }
+        .legend-marker.town { background: #f39c12; }
+
+        /* Title overlay */
+        .title-overlay {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2d2d44;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 1.2em;
+            font-weight: 600;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+
+        /* Back link */
+        .back-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: #2d2d44;
+            padding: 10px 16px;
+            border-radius: 8px;
+            color: #7eb8da;
+            text-decoration: none;
+            font-size: 0.9em;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            transition: background 0.2s;
+        }
+
+        .back-link:hover {
+            background: #3d3d54;
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 600px) {
+            .title-overlay {
+                font-size: 1em;
+                padding: 8px 16px;
+                top: 10px;
+            }
+            .back-link {
+                top: 10px;
+                left: 10px;
+                padding: 8px 12px;
+                font-size: 0.85em;
+            }
+            .legend {
+                bottom: 10px;
+                left: 10px;
+                padding: 10px;
+                font-size: 0.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="https://publish.obsidian.md/elvensong" class="back-link">← Back to Campaign</a>
+    <div class="title-overlay">Elvensong Campaign - World of Gryth</div>
+
+    <div class="legend">
+        <h4>Legend</h4>
+        <div class="legend-item"><span class="legend-marker city"></span> Cities</div>
+        <div class="legend-item"><span class="legend-marker region"></span> Regions</div>
+        <div class="legend-item"><span class="legend-marker location"></span> Locations</div>
+        <div class="legend-item"><span class="legend-marker town"></span> Towns</div>
+    </div>
+
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // ==== CONFIGURATION ====
+        const PUBLISH_BASE_URL = 'https://publish.obsidian.md/elvensong/';
+        const MAP_IMAGE_URL = './World Map.jpg';
+        const MAP_WIDTH = 2048;
+        const MAP_HEIGHT = 2048;
+
+        // ==== MARKER DATA ====
+        const markers = [
+            { name: "City - Treston", type: "city", lat: -4.210304260253906, lng: 3.3864593505859375 },
+            { name: "City - Silverwall", type: "city", lat: -3.9634552001953125, lng: 4.496928352322728 },
+            { name: "City - Shafthield", type: "city", lat: -4.282474517822266, lng: 2.9122390747070312 },
+            { name: "City - Treeheart", type: "city", lat: -4.433723449707031, lng: 3.928874969482422 },
+            { name: "City - Shugwood", type: "city", lat: -15.400390625, lng: 4.003875732421875 },
+            { name: "City - Irus-Halls", type: "city", lat: -14.343193054199219, lng: 6.639583587646484 },
+            { name: "City - Ustraga", type: "city", lat: -2.3504180908203125, lng: 2.401702880859375 },
+            { name: "Region - High Vel'Nora", type: "region", lat: -6.527923583984375, lng: 7.9871063232421875 },
+            { name: "Region - Eros", type: "region", lat: -8.4805908203125, lng: 6.339752197265625 },
+            { name: "Region - Alkan", type: "region", lat: -4.4703216552734375, lng: 1.819244384765625 },
+            { name: "Region - Q'Shar", type: "region", lat: -8.740341186523438, lng: 14.101760864257812 },
+            { name: "Region - The Thornmark", type: "region", lat: -2.699359893798828, lng: 4.7855224609375 },
+            { name: "Region - The Deadmoors", type: "region", lat: -3.104949951171875, lng: 3.477611541748047 },
+            { name: "Region - Eldvale", type: "region", lat: -2.1762924194335938, lng: 2.197040557861328 },
+            { name: "Region - The Discovery Coast", type: "region", lat: -3.5605087280273438, lng: 5.4624786376953125 },
+            { name: "Region - Silvaria", type: "region", lat: -4.738491058349609, lng: 3.7910499572753906 },
+            { name: "Region - Glaszar", type: "region", lat: -1.9861831665039062, lng: 3.908435821533203 },
+            { name: "Town - Beren-on-Lake", type: "town", lat: -4.082859039306641, lng: 3.6508140563964844 },
+            { name: "Location - Grey Rock Isle", type: "location", lat: -5.223838806152344, lng: 3.13360595703125 }
+        ];
+
+        // ==== MARKER ICONS ====
+        const createIcon = (color) => L.divIcon({
+            className: 'custom-marker',
+            html: `<svg width="25" height="41" viewBox="0 0 25 41" xmlns="http://www.w3.org/2000/svg">
+                <path fill="${color}" stroke="#fff" stroke-width="1.5" d="M12.5 0C5.6 0 0 5.6 0 12.5c0 10.9 12.5 28.5 12.5 28.5S25 23.4 25 12.5C25 5.6 19.4 0 12.5 0z"/>
+                <circle fill="#fff" cx="12.5" cy="12.5" r="5"/>
+            </svg>`,
+            iconSize: [25, 41],
+            iconAnchor: [12.5, 41],
+            popupAnchor: [0, -35]
+        });
+
+        const icons = {
+            city: createIcon('#e74c3c'),
+            region: createIcon('#2ecc71'),
+            location: createIcon('#9b59b6'),
+            town: createIcon('#f39c12')
+        };
+
+        // ==== INITIALIZE MAP ====
+        const bounds = [[0, 0], [-MAP_HEIGHT / 100, MAP_WIDTH / 100]];
+
+        const map = L.map('map', {
+            crs: L.CRS.Simple,
+            minZoom: -2,
+            maxZoom: 3,
+            zoomSnap: 0.25,
+            zoomDelta: 0.5
+        });
+
+        L.imageOverlay(MAP_IMAGE_URL, bounds).addTo(map);
+        map.fitBounds(bounds);
+
+        // ==== ADD MARKERS ====
+        markers.forEach(marker => {
+            const icon = icons[marker.type] || icons.location;
+            const displayName = marker.name.replace(/^(City|Region|Town|Location) - /, '');
+            const typeLabel = marker.type.charAt(0).toUpperCase() + marker.type.slice(1);
+
+            // Build Obsidian Publish URL
+            const notePath = marker.name.replace(/ /g, '+');
+            let folder = '';
+            if (marker.type === 'city') folder = 'Cities/';
+            else if (marker.type === 'region') folder = 'Regions/';
+            else if (marker.type === 'town') folder = 'Towns/';
+            else if (marker.type === 'location') folder = 'Locations/';
+
+            const noteUrl = PUBLISH_BASE_URL + folder + notePath;
+
+            const popupContent = `
+                <div class="popup-title">${displayName}</div>
+                <div class="popup-type">${typeLabel}</div>
+                <a href="${noteUrl}" target="_blank" class="popup-link">View Details →</a>
+            `;
+
+            L.marker([marker.lat, marker.lng], { icon: icon })
+                .bindPopup(popupContent)
+                .bindTooltip(displayName, {
+                    permanent: false,
+                    direction: 'top',
+                    offset: [0, -35]
+                })
+                .addTo(map);
+        });
+
+        // Press 'R' to reset view
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'r' || e.key === 'R') {
+                map.fitBounds(bounds);
+            }
+        });
+    </script>
+</body>
+</html>
