@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { MapContainer, ImageOverlay, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -133,11 +133,30 @@ export default function App() {
   const [hoverPosition, setHoverPosition] = useState<{ x: number; y: number } | null>(null);
   const hoverCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Initial view
-  const initialCenter = toLeaflet(
-    MAP_CONFIG.currentLocation.x,
-    MAP_CONFIG.currentLocation.y
-  );
+  // Get initial location from URL params or default to current location
+  const { initialCenter, initialZoom } = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const locationName = params.get('location');
+
+    if (locationName) {
+      // Find marker by name (case-insensitive)
+      const targetMarker = markers.find(
+        m => m.name.toLowerCase() === locationName.toLowerCase()
+      );
+      if (targetMarker) {
+        return {
+          initialCenter: toLeaflet(targetMarker.x, targetMarker.y),
+          initialZoom: 0, // Zoom in a bit more for specific locations
+        };
+      }
+    }
+
+    // Default to current location
+    return {
+      initialCenter: toLeaflet(MAP_CONFIG.currentLocation.x, MAP_CONFIG.currentLocation.y),
+      initialZoom: MAP_CONFIG.currentLocation.zoom,
+    };
+  }, [markers]);
 
   // Navigation functions
   const goToCurrentLocation = useCallback(() => {
@@ -298,7 +317,7 @@ export default function App() {
       {/* Map */}
       <MapContainer
         center={initialCenter}
-        zoom={MAP_CONFIG.currentLocation.zoom}
+        zoom={initialZoom}
         crs={L.CRS.Simple}
         minZoom={-3}
         maxZoom={2}
