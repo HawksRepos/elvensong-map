@@ -64,6 +64,38 @@ function MapController({ mapRef }: { mapRef: React.MutableRefObject<L.Map | null
   return null;
 }
 
+// Component to handle trackpad gestures (pinch to zoom, scroll to pan)
+function TrackpadHandler() {
+  const map = useMap();
+
+  useEffect(() => {
+    const container = map.getContainer();
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+
+      // Pinch gesture on trackpad sets ctrlKey to true
+      if (e.ctrlKey || e.metaKey) {
+        // Pinch to zoom
+        const zoom = map.getZoom();
+        const delta = -e.deltaY * 0.01;
+        map.setZoom(zoom + delta, { animate: false });
+      } else {
+        // Two-finger scroll to pan
+        map.panBy([e.deltaX, e.deltaY], { animate: false });
+      }
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+    };
+  }, [map]);
+
+  return null;
+}
+
 export default function App() {
   const mapRef = useRef<L.Map | null>(null);
 
@@ -270,12 +302,18 @@ export default function App() {
         crs={L.CRS.Simple}
         minZoom={-3}
         maxZoom={2}
-        zoomSnap={0.25}
-        zoomDelta={0.5}
+        zoomSnap={0.1}
+        zoomDelta={0.25}
+        scrollWheelZoom={false}
+        inertia={true}
+        inertiaDeceleration={2000}
+        bounceAtZoomLimits={false}
         maxBounds={[[-500, -500], [MAP_CONFIG.imageHeight + 500, MAP_CONFIG.imageWidth + 500]]}
+        maxBoundsViscosity={0.8}
         className="w-full h-full"
       >
         <MapController mapRef={mapRef} />
+        <TrackpadHandler />
         <MapEvents
           editMode={editMode}
           onMapClick={handleMapClick}
