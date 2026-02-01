@@ -6,9 +6,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Elvensong Campaign - World Map</title>
     <meta name="description" content="Interactive world map for the Elvensong D&D campaign" />
+    <style>
+      /* Loading state before React hydrates */
+      body {
+        margin: 0;
+        background: #1a1a2e;
+      }
+      .loading-screen {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        color: #e2e8f0;
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+      .loading-spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid #2ecc71;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 16px;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="loading-screen">
+        <div class="loading-spinner"></div>
+        <p>Loading Elvensong Map...</p>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Handle SPA redirect from 404.html
+      (function() {
+        const redirect = sessionStorage.getItem('spa-redirect');
+        if (redirect) {
+          sessionStorage.removeItem('spa-redirect');
+          // Only handle if it's not the base path
+          if (redirect !== '/elvensong-map/' && redirect !== '/elvensong-map') {
+            window.history.replaceState(null, '', redirect);
+          }
+        }
+      })();
+    </script>
   </body>
 </html>

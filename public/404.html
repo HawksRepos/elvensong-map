@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Redirecting...</title>
+    <script>
+      // Single Page App redirect for GitHub Pages
+      // Stores the path and redirects to index.html
+      const path = window.location.pathname;
+      const search = window.location.search;
+      const hash = window.location.hash;
+      sessionStorage.setItem('spa-redirect', path + search + hash);
+      window.location.replace('/elvensong-map/');
+    </script>
+  </head>
+  <body>
+    <p>Redirecting...</p>
+  </body>
+</html>
