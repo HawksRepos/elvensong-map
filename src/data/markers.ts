@@ -229,7 +229,7 @@ export const DEFAULT_MARKERS: Marker[] = [
     type: 'region',
     x: 1541,
     y: 1883,
-    link: 'Nations/Nation+-+Prosperia',
+    link: 'Regions/Region+-+Prosperia',
     description: 'Western nation containing Treston. No central king - power is decentralized. Allied with True Sylvaria but roads are dangerous.',
     quickFacts: { 'Capital': 'Treston', 'Government': 'Decentralized', 'Ally': 'True Sylvaria' },
   },
