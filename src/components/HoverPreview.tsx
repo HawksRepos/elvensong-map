@@ -6,9 +6,10 @@ interface HoverPreviewProps {
   position: { x: number; y: number };
   onClose: () => void;
   onClick: () => void;
+  onMouseEnter?: () => void;
 }
 
-export function HoverPreview({ marker, position, onClose, onClick }: HoverPreviewProps) {
+export function HoverPreview({ marker, position, onClose, onClick, onMouseEnter }: HoverPreviewProps) {
   const [isVisible, setIsVisible] = useState(false);
   const color = MARKER_COLORS[marker.type];
   const typeLabel = MARKER_TYPE_LABELS[marker.type];
@@ -48,6 +49,7 @@ export function HoverPreview({ marker, position, onClose, onClick }: HoverPrevie
         isVisible ? 'opacity-100' : 'opacity-0'
       }`}
       style={{ left, top }}
+      onMouseEnter={onMouseEnter}
       onMouseLeave={onClose}
     >
       <div className="w-80 bg-dark-panel rounded-lg shadow-2xl border border-dark-border overflow-hidden">

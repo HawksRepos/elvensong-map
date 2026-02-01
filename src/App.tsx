@@ -99,6 +99,7 @@ export default function App() {
   // Hover preview state
   const [hoveredMarker, setHoveredMarker] = useState<Marker | null>(null);
   const [hoverPosition, setHoverPosition] = useState<{ x: number; y: number } | null>(null);
+  const hoverCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Initial view
   const initialCenter = toLeaflet(
@@ -176,11 +177,32 @@ export default function App() {
 
   // Hover preview handlers
   const handleMarkerHover = useCallback((marker: Marker, screenPos: { x: number; y: number }) => {
+    // Cancel any pending close
+    if (hoverCloseTimeoutRef.current) {
+      clearTimeout(hoverCloseTimeoutRef.current);
+      hoverCloseTimeoutRef.current = null;
+    }
     setHoveredMarker(marker);
     setHoverPosition(screenPos);
   }, []);
 
   const handleMarkerHoverEnd = useCallback(() => {
+    // Delay closing to allow mouse to move to preview
+    hoverCloseTimeoutRef.current = setTimeout(() => {
+      setHoveredMarker(null);
+      setHoverPosition(null);
+    }, 150);
+  }, []);
+
+  const handlePreviewMouseEnter = useCallback(() => {
+    // Cancel close when mouse enters preview
+    if (hoverCloseTimeoutRef.current) {
+      clearTimeout(hoverCloseTimeoutRef.current);
+      hoverCloseTimeoutRef.current = null;
+    }
+  }, []);
+
+  const handlePreviewClose = useCallback(() => {
     setHoveredMarker(null);
     setHoverPosition(null);
   }, []);
@@ -370,8 +392,9 @@ export default function App() {
         <HoverPreview
           marker={hoveredMarker}
           position={hoverPosition}
-          onClose={handleMarkerHoverEnd}
+          onClose={handlePreviewClose}
           onClick={() => handleMarkerClick(hoveredMarker)}
+          onMouseEnter={handlePreviewMouseEnter}
         />
       )}
     </div>
