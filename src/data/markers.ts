@@ -303,4 +303,14 @@ export const DEFAULT_MARKERS: Marker[] = [
     description: 'The central gateway of Auken, a sprawling territory of fertile farmlands and world-renowned culinary tradition. Capital: Silverwall.',
     quickFacts: { 'Capital': 'Silverwall', 'Ruler': 'King Thomas of House Garrik', 'Known For': 'Culinary schools, agriculture' },
   },
+  {
+    id: '30',
+    name: 'Edaria',
+    type: 'continent',
+    x: 6343,
+    y: 1337,
+    link: 'Continents/Continent+-+Edaria',
+    description: 'A major continent known for the rise and fall of the Eldari Empire. Origin of the Kingdom of Marris which colonized the Discovery Coast.',
+    quickFacts: { 'Historical': 'Eldari Empire', 'Notable': 'Scavania, Aeroport', 'Connection': 'Discovery Coast colonization' },
+  },
 ];
