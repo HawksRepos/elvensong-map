@@ -333,4 +333,14 @@ export const DEFAULT_MARKERS: Marker[] = [
     description: "Ancient city at the base of Arag'Mar (Gold Peak). Former center of the Eldari Empire.",
     quickFacts: { 'Continent': 'Edaria', 'Near': "Arag'Mar", 'Historical': 'Eldari Empire capital' },
   },
+  {
+    id: '33',
+    name: 'Ludland',
+    type: 'region',
+    x: 694,
+    y: 2980,
+    link: 'Regions/Region+-+Ludland',
+    description: 'Remote halfling island off the coast of Auken. Home of the Ludlings and protected by magical wards requiring the Oath of the Grain to enter.',
+    quickFacts: { 'Population': 'Ludlings (Halflings)', 'Capital': 'Wentchester', 'Famous For': 'Finest beer and cider in Gryth' },
+  },
 ];
