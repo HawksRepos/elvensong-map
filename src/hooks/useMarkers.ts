@@ -1,14 +1,53 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { Marker, MarkerType, MarkerFilters } from '../types';
+import { Marker, MarkerType, MarkerFilters, MapConfig } from '../types';
 import { useLocalStorage } from './useLocalStorage';
 import { useUndoRedo } from './useUndoRedo';
-import { DEFAULT_MARKERS } from '../data/markers';
+import { DEFAULT_MARKERS, MAP_CONFIG } from '../data/markers';
+import { fetchMapData } from '../utils/fetchMapData';
 
 const STORAGE_KEY = 'elvensong-map-markers';
+const CONFIG_STORAGE_KEY = 'elvensong-map-config';
+const LAST_FETCH_KEY = 'elvensong-map-last-fetch';
+
+// Refresh data if older than 5 minutes
+const CACHE_DURATION = 5 * 60 * 1000;
 
 export function useMarkers() {
   // Load saved markers or use defaults
   const [savedMarkers, setSavedMarkers] = useLocalStorage<Marker[]>(STORAGE_KEY, DEFAULT_MARKERS);
+  const [savedConfig, setSavedConfig] = useLocalStorage<MapConfig>(CONFIG_STORAGE_KEY, MAP_CONFIG);
+  const [isLoading, setIsLoading] = useState(false);
+  const [mapConfig, setMapConfig] = useState<MapConfig>(savedConfig);
+
+  // Fetch fresh data from Obsidian Publish
+  const refreshFromSource = useCallback(async (force = false) => {
+    const lastFetch = localStorage.getItem(LAST_FETCH_KEY);
+    const now = Date.now();
+
+    // Skip if recently fetched (unless forced)
+    if (!force && lastFetch && now - parseInt(lastFetch) < CACHE_DURATION) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { markers: freshMarkers, config: freshConfig } = await fetchMapData();
+      setSavedMarkers(freshMarkers);
+      setSavedConfig(freshConfig);
+      setMapConfig(freshConfig);
+      localStorage.setItem(LAST_FETCH_KEY, now.toString());
+      console.log('Map data refreshed from Obsidian Publish');
+    } catch (error) {
+      console.error('Failed to refresh map data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [setSavedMarkers, setSavedConfig]);
+
+  // Fetch on mount (background refresh)
+  useEffect(() => {
+    refreshFromSource();
+  }, [refreshFromSource]);
 
   // Undo/redo for markers
   const {
@@ -111,34 +150,63 @@ export function useMarkers() {
     }));
   }, []);
 
-  // Export markers as JSON
+  // Export full map data as JSON (config + markers) for Map-Data.md
   const exportMarkers = useCallback(() => {
-    return JSON.stringify(markers, null, 2);
-  }, [markers]);
+    const exportData = {
+      config: {
+        imageWidth: mapConfig.imageWidth,
+        imageHeight: mapConfig.imageHeight,
+        currentLocation: mapConfig.currentLocation,
+      },
+      markers: markers,
+    };
+    return JSON.stringify(exportData, null, 2);
+  }, [markers, mapConfig]);
 
-  // Import markers from JSON
+  // Import markers from JSON (supports full format or markers-only)
   const importMarkers = useCallback((json: string) => {
     try {
-      const imported = JSON.parse(json) as Marker[];
+      const imported = JSON.parse(json);
+
+      // Handle full format (config + markers)
+      if (imported.config && imported.markers && Array.isArray(imported.markers)) {
+        setMarkersState(imported.markers);
+        if (imported.config.currentLocation) {
+          setMapConfig(prev => ({
+            ...prev,
+            ...imported.config,
+          }));
+          setSavedConfig(prev => ({
+            ...prev,
+            ...imported.config,
+          }));
+        }
+        return { success: true };
+      }
+
+      // Handle markers-only format (backwards compatibility)
       if (Array.isArray(imported)) {
         setMarkersState(imported);
         return { success: true };
       }
-      return { success: false, error: 'Invalid format: expected an array' };
+
+      return { success: false, error: 'Invalid format: expected markers array or {config, markers} object' };
     } catch (e) {
       return { success: false, error: 'Invalid JSON' };
     }
-  }, [setMarkersState]);
+  }, [setMarkersState, setMapConfig, setSavedConfig]);
 
-  // Reset to default markers
-  const resetMarkers = useCallback(() => {
-    setMarkersState(DEFAULT_MARKERS);
-  }, [setMarkersState]);
+  // Reset to default markers (refetch from source)
+  const resetMarkers = useCallback(async () => {
+    await refreshFromSource(true);
+  }, [refreshFromSource]);
 
   return {
     markers,
     filteredMarkers,
     filters,
+    mapConfig,
+    isLoading,
     addMarker,
     updateMarker,
     deleteMarker,
@@ -153,5 +221,6 @@ export function useMarkers() {
     exportMarkers,
     importMarkers,
     resetMarkers,
+    refreshFromSource,
   };
 }

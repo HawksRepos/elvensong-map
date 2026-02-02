@@ -1,9 +1,10 @@
-import { MapPin, Map, Edit, Undo, Redo, Download, Upload, RotateCcw, ExternalLink } from 'lucide-react';
+import { MapPin, Map, Edit, Undo, Redo, Download, Upload, RotateCcw, ExternalLink, RefreshCw } from 'lucide-react';
 
 interface ControlPanelProps {
   editMode: boolean;
   canUndo: boolean;
   canRedo: boolean;
+  isLoading?: boolean;
   onToggleEditMode: () => void;
   onGoToCurrentLocation: () => void;
   onShowFullMap: () => void;
@@ -12,12 +13,14 @@ interface ControlPanelProps {
   onExport: () => void;
   onImport: () => void;
   onReset: () => void;
+  onRefresh?: () => void;
 }
 
 export function ControlPanel({
   editMode,
   canUndo,
   canRedo,
+  isLoading,
   onToggleEditMode,
   onGoToCurrentLocation,
   onShowFullMap,
@@ -26,6 +29,7 @@ export function ControlPanel({
   onExport,
   onImport,
   onReset,
+  onRefresh,
 }: ControlPanelProps) {
   return (
     <div className="fixed bottom-5 right-5 flex flex-col gap-2 z-[1000]">
@@ -54,6 +58,21 @@ export function ControlPanel({
         <Map size={18} />
         <span>Full Map</span>
       </button>
+
+      {/* Refresh from Obsidian */}
+      {onRefresh && (
+        <button
+          onClick={onRefresh}
+          disabled={isLoading}
+          className={`flex items-center gap-2 bg-dark-panel text-white px-4 py-2.5 rounded-lg shadow-xl transition-colors ${
+            isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-dark-hover'
+          }`}
+          title="Sync markers from Obsidian Publish"
+        >
+          <RefreshCw size={18} className={isLoading ? 'animate-spin' : ''} />
+          <span>{isLoading ? 'Syncing...' : 'Sync Markers'}</span>
+        </button>
+      )}
 
       {/* Edit Mode Toggle */}
       <button

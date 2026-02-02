@@ -4,7 +4,6 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 import { useMarkers } from './hooks/useMarkers';
-import { MAP_CONFIG } from './data/markers';
 import { toLeaflet, fromLeaflet } from './utils/coordinates';
 import { Marker } from './types';
 
@@ -19,12 +18,6 @@ import {
   HoverPreview,
 } from './components';
 import { getWikiUrl } from './utils/urls';
-
-// Map bounds based on image size
-const imageBounds: L.LatLngBoundsExpression = [
-  [0, 0],
-  [MAP_CONFIG.imageHeight, MAP_CONFIG.imageWidth],
-];
 
 // Component to handle map events
 function MapEvents({
@@ -104,6 +97,8 @@ export default function App() {
     markers,
     filteredMarkers,
     filters,
+    mapConfig,
+    isLoading,
     addMarker,
     updateMarker,
     deleteMarker,
@@ -117,7 +112,14 @@ export default function App() {
     exportMarkers,
     importMarkers,
     resetMarkers,
+    refreshFromSource,
   } = useMarkers();
+
+  // Map bounds based on image size (computed from config)
+  const imageBounds: L.LatLngBoundsExpression = useMemo(() => [
+    [0, 0],
+    [mapConfig.imageHeight, mapConfig.imageWidth],
+  ], [mapConfig.imageHeight, mapConfig.imageWidth]);
 
   // UI state
   const [editMode, setEditMode] = useState(false);
@@ -153,18 +155,18 @@ export default function App() {
 
     // Default to current location
     return {
-      initialCenter: toLeaflet(MAP_CONFIG.currentLocation.x, MAP_CONFIG.currentLocation.y),
-      initialZoom: MAP_CONFIG.currentLocation.zoom,
+      initialCenter: toLeaflet(mapConfig.currentLocation.x, mapConfig.currentLocation.y),
+      initialZoom: mapConfig.currentLocation.zoom,
     };
-  }, [markers]);
+  }, [markers, mapConfig]);
 
   // Navigation functions
   const goToCurrentLocation = useCallback(() => {
     if (mapRef.current) {
-      const pos = toLeaflet(MAP_CONFIG.currentLocation.x, MAP_CONFIG.currentLocation.y);
-      mapRef.current.setView(pos, MAP_CONFIG.currentLocation.zoom, { animate: true });
+      const pos = toLeaflet(mapConfig.currentLocation.x, mapConfig.currentLocation.y);
+      mapRef.current.setView(pos, mapConfig.currentLocation.zoom, { animate: true });
     }
-  }, []);
+  }, [mapConfig]);
 
   const showFullMap = useCallback(() => {
     if (mapRef.current) {
@@ -327,7 +329,7 @@ export default function App() {
         inertia={true}
         inertiaDeceleration={2000}
         bounceAtZoomLimits={false}
-        maxBounds={[[-500, -500], [MAP_CONFIG.imageHeight + 500, MAP_CONFIG.imageWidth + 500]]}
+        maxBounds={[[-500, -500], [mapConfig.imageHeight + 500, mapConfig.imageWidth + 500]]}
         maxBoundsViscosity={0.8}
         className="w-full h-full"
       >
@@ -371,6 +373,7 @@ export default function App() {
         editMode={editMode}
         canUndo={canUndo}
         canRedo={canRedo}
+        isLoading={isLoading}
         onToggleEditMode={() => setEditMode((prev) => !prev)}
         onGoToCurrentLocation={goToCurrentLocation}
         onShowFullMap={showFullMap}
@@ -379,6 +382,7 @@ export default function App() {
         onExport={() => setModalMode('export')}
         onImport={() => setModalMode('import')}
         onReset={() => setShowResetConfirm(true)}
+        onRefresh={() => refreshFromSource(true)}
       />
 
       {/* Edit Mode Banner */}
@@ -391,7 +395,8 @@ export default function App() {
       {/* Current Location Banner */}
       {!editMode && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 bg-marker-region text-dark-bg px-4 py-2 rounded-full shadow-lg z-[1000] text-sm font-medium">
-          Current: {MAP_CONFIG.currentLocation.name}
+          Current: {mapConfig.currentLocation.name}
+          {isLoading && <span className="ml-2 text-xs opacity-70">(syncing...)</span>}
         </div>
       )}
 
