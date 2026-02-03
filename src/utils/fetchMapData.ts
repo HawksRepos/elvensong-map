@@ -24,25 +24,28 @@ interface MapData {
 export async function fetchMapData(): Promise<{ markers: Marker[]; config: MapConfig }> {
   try {
     const response = await fetch(OBSIDIAN_PUBLISH_URL, {
-      credentials: 'include',
+      mode: 'cors',
+      cache: 'no-cache',
     });
 
     if (!response.ok) {
-      console.warn('Failed to fetch map data from Obsidian Publish, using static fallback');
+      console.warn('Failed to fetch map data from Obsidian Publish, status:', response.status);
       return { markers: DEFAULT_MARKERS, config: MAP_CONFIG };
     }
 
     const markdown = await response.text();
+    console.log('Fetched markdown length:', markdown.length);
 
     // Extract JSON from markdown code block
     const jsonMatch = markdown.match(/```json\s*([\s\S]*?)\s*```/);
 
     if (!jsonMatch || !jsonMatch[1]) {
-      console.warn('Could not find JSON in Map-Data.md, using static fallback');
+      console.warn('Could not find JSON in Map-Data.md. Content preview:', markdown.substring(0, 500));
       return { markers: DEFAULT_MARKERS, config: MAP_CONFIG };
     }
 
     const data: MapData = JSON.parse(jsonMatch[1]);
+    console.log('Successfully parsed', data.markers.length, 'markers from Obsidian Publish');
 
     const config: MapConfig = {
       imageWidth: data.config.imageWidth,
