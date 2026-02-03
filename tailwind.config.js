@@ -7,10 +7,10 @@ export default {
   theme: {
     extend: {
       colors: {
-        'dark-bg': '#1a1a2e',
-        'dark-panel': '#2d2d44',
-        'dark-hover': '#3d3d54',
-        'dark-border': '#4d4d64',
+        'dark-bg': '#1e1e1e',
+        'dark-panel': '#262626',
+        'dark-hover': '#363636',
+        'dark-border': '#404040',
         'accent-blue': '#7eb8da',
         'marker-city': '#e74c3c',
         'marker-region': '#2ecc71',

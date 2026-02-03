@@ -95,7 +95,7 @@ export function PlacesMenu({ markers, onSelectPlace, isOpen, onOpenChange }: Pla
       {/* Burger Button - styled to match Leaflet zoom controls */}
       <button
         onClick={() => onOpenChange(true)}
-        className="fixed top-2.5 left-2.5 w-[36px] h-[36px] bg-[#2d2d44] text-gray-200 rounded-lg shadow-xl z-[1000] hover:bg-[#3d3d54] transition-colors flex items-center justify-center"
+        className="fixed top-2.5 left-2.5 w-[36px] h-[36px] bg-[#262626] text-gray-200 rounded-lg shadow-xl z-[1000] hover:bg-[#363636] transition-colors flex items-center justify-center"
         title="Places Menu"
       >
         <Menu size={18} />
