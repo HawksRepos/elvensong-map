@@ -12,7 +12,7 @@ export function Legend({ filters, onToggle, menuOpen = false }: LegendProps) {
   return (
     <div
       className={`fixed bottom-5 bg-dark-panel p-2 sm:p-4 rounded-lg shadow-xl z-[1000] transition-all duration-300 ${
-        menuOpen ? 'left-[calc(85vw+12px)] sm:left-[332px]' : 'left-5'
+        menuOpen ? 'left-[calc(65vw+8px)] sm:left-[300px] md:left-[332px]' : 'left-5'
       }`}
     >
       <h4 className="text-accent-blue font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Legend</h4>

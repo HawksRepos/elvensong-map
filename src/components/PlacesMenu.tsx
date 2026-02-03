@@ -111,7 +111,7 @@ export function PlacesMenu({ markers, onSelectPlace, isOpen, onOpenChange }: Pla
 
       {/* Slide-out Menu */}
       <div
-        className={`fixed top-0 left-0 h-full w-[85vw] sm:w-80 bg-dark-panel shadow-2xl z-[1002] transform transition-transform duration-300 ${
+        className={`fixed top-0 left-0 h-full w-[65vw] sm:w-72 md:w-80 bg-dark-panel shadow-2xl z-[1002] transform transition-transform duration-300 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
