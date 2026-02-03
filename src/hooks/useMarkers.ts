@@ -19,6 +19,16 @@ export function useMarkers() {
   const [isLoading, setIsLoading] = useState(false);
   const [mapConfig, setMapConfig] = useState<MapConfig>(savedConfig);
 
+  // Undo/redo for markers (moved up so setMarkersState is available)
+  const {
+    state: markers,
+    setState: setMarkersState,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  } = useUndoRedo<Marker[]>(savedMarkers);
+
   // Fetch fresh data from Obsidian Publish
   const refreshFromSource = useCallback(async (force = false) => {
     const lastFetch = localStorage.getItem(LAST_FETCH_KEY);
@@ -32,7 +42,9 @@ export function useMarkers() {
     setIsLoading(true);
     try {
       const { markers: freshMarkers, config: freshConfig } = await fetchMapData();
+      // Update both localStorage AND displayed markers
       setSavedMarkers(freshMarkers);
+      setMarkersState(freshMarkers);
       setSavedConfig(freshConfig);
       setMapConfig(freshConfig);
       localStorage.setItem(LAST_FETCH_KEY, now.toString());
@@ -42,22 +54,12 @@ export function useMarkers() {
     } finally {
       setIsLoading(false);
     }
-  }, [setSavedMarkers, setSavedConfig]);
+  }, [setSavedMarkers, setSavedConfig, setMarkersState]);
 
   // Fetch on mount (background refresh)
   useEffect(() => {
     refreshFromSource();
   }, [refreshFromSource]);
-
-  // Undo/redo for markers
-  const {
-    state: markers,
-    setState: setMarkersState,
-    undo,
-    redo,
-    canUndo,
-    canRedo,
-  } = useUndoRedo<Marker[]>(savedMarkers);
 
   // Filters
   const [filters, setFilters] = useState<MarkerFilters>({
