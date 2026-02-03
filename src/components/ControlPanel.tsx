@@ -32,31 +32,34 @@ export function ControlPanel({
   onRefresh,
 }: ControlPanelProps) {
   return (
-    <div className="fixed bottom-5 right-5 flex flex-col gap-2 z-[1000]">
+    <div className="fixed bottom-5 right-5 flex flex-col gap-1.5 sm:gap-2 z-[1000]">
       {/* Campaign Link */}
       <a
         href="https://publish.obsidian.md/elvensong"
-        className="flex items-center gap-2 bg-dark-hover text-accent-blue px-4 py-2.5 rounded-lg shadow-xl hover:bg-dark-border transition-colors"
+        className="flex items-center gap-2 bg-dark-hover text-accent-blue px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg shadow-xl hover:bg-dark-border transition-colors text-sm sm:text-base"
       >
-        <ExternalLink size={18} />
-        <span>Back to Campaign</span>
+        <ExternalLink size={16} className="sm:w-[18px] sm:h-[18px]" />
+        <span className="hidden sm:inline">Back to Campaign</span>
+        <span className="sm:hidden">Campaign</span>
       </a>
 
       {/* Navigation */}
       <button
         onClick={onGoToCurrentLocation}
-        className="flex items-center gap-2 bg-dark-panel text-white px-4 py-2.5 rounded-lg shadow-xl hover:bg-dark-hover transition-colors"
+        className="flex items-center gap-2 bg-dark-panel text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg shadow-xl hover:bg-dark-hover transition-colors text-sm sm:text-base"
       >
-        <MapPin size={18} />
-        <span>Current Location</span>
+        <MapPin size={16} className="sm:w-[18px] sm:h-[18px]" />
+        <span className="hidden sm:inline">Current Location</span>
+        <span className="sm:hidden">Current</span>
       </button>
 
       <button
         onClick={onShowFullMap}
-        className="flex items-center gap-2 bg-dark-panel text-white px-4 py-2.5 rounded-lg shadow-xl hover:bg-dark-hover transition-colors"
+        className="flex items-center gap-2 bg-dark-panel text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg shadow-xl hover:bg-dark-hover transition-colors text-sm sm:text-base"
       >
-        <Map size={18} />
-        <span>Full Map</span>
+        <Map size={16} className="sm:w-[18px] sm:h-[18px]" />
+        <span className="hidden sm:inline">Full Map</span>
+        <span className="sm:hidden">Full</span>
       </button>
 
       {/* Refresh from Obsidian */}
@@ -64,27 +67,29 @@ export function ControlPanel({
         <button
           onClick={onRefresh}
           disabled={isLoading}
-          className={`flex items-center gap-2 bg-dark-panel text-white px-4 py-2.5 rounded-lg shadow-xl transition-colors ${
+          className={`flex items-center gap-2 bg-dark-panel text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg shadow-xl transition-colors text-sm sm:text-base ${
             isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-dark-hover'
           }`}
           title="Sync markers from Obsidian Publish"
         >
-          <RefreshCw size={18} className={isLoading ? 'animate-spin' : ''} />
-          <span>{isLoading ? 'Syncing...' : 'Sync Markers'}</span>
+          <RefreshCw size={16} className={`sm:w-[18px] sm:h-[18px] ${isLoading ? 'animate-spin' : ''}`} />
+          <span className="hidden sm:inline">{isLoading ? 'Syncing...' : 'Sync Markers'}</span>
+          <span className="sm:hidden">{isLoading ? '...' : 'Sync'}</span>
         </button>
       )}
 
       {/* Edit Mode Toggle */}
       <button
         onClick={onToggleEditMode}
-        className={`flex items-center gap-2 px-4 py-2.5 rounded-lg shadow-xl transition-colors ${
+        className={`flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg shadow-xl transition-colors text-sm sm:text-base ${
           editMode
             ? 'bg-marker-city text-white'
             : 'bg-dark-panel text-white hover:bg-dark-hover'
         }`}
       >
-        <Edit size={18} />
-        <span>Edit Mode</span>
+        <Edit size={16} className="sm:w-[18px] sm:h-[18px]" />
+        <span className="hidden sm:inline">Edit Mode</span>
+        <span className="sm:hidden">Edit</span>
       </button>
 
       {/* Edit Mode Controls */}

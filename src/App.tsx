@@ -5,7 +5,20 @@ import 'leaflet/dist/leaflet.css';
 
 import { useMarkers } from './hooks/useMarkers';
 import { toLeaflet, fromLeaflet } from './utils/coordinates';
-import { Marker } from './types';
+import { Marker, MarkerType } from './types';
+
+// Zoom thresholds for marker visibility
+// At zoom -3 to -1.5: only continents
+// At zoom -1.5 to -0.5: continents + regions
+// At zoom -0.5 to 0.5: continents + regions + cities
+// At zoom 0.5+: everything
+const ZOOM_THRESHOLDS: Record<MarkerType, number> = {
+  continent: -3,    // Always visible (at any zoom)
+  region: -1.5,     // Visible when zoomed in past -1.5
+  city: -0.5,       // Visible when zoomed in past -0.5
+  town: 0.5,        // Visible when zoomed in past 0.5
+  location: 0.5,    // Visible when zoomed in past 0.5
+};
 
 import {
   MapMarker,
@@ -16,6 +29,8 @@ import {
   ImportExportModal,
   ConfirmModal,
   HoverPreview,
+  PlacesMenu,
+  MiniMap,
 } from './components';
 import { getWikiUrl } from './utils/urls';
 
@@ -57,24 +72,90 @@ function MapController({ mapRef }: { mapRef: React.MutableRefObject<L.Map | null
   return null;
 }
 
-// Component to handle trackpad gestures (pinch to zoom, scroll to pan)
-function TrackpadHandler() {
+// Component to track zoom level changes
+function ZoomTracker({ onZoomChange }: { onZoomChange: (zoom: number) => void }) {
   const map = useMap();
 
   useEffect(() => {
+    // Set initial zoom
+    onZoomChange(map.getZoom());
+
+    // Listen for zoom changes
+    const handleZoom = () => {
+      onZoomChange(map.getZoom());
+    };
+
+    map.on('zoomend', handleZoom);
+    map.on('zoom', handleZoom);
+
+    return () => {
+      map.off('zoomend', handleZoom);
+      map.off('zoom', handleZoom);
+    };
+  }, [map, onZoomChange]);
+
+  return null;
+}
+
+// Component to handle all trackpad gestures (taking full control from Leaflet)
+function TrackpadGestureHandler() {
+  const map = useMap();
+  const zoomAccumulator = useRef(0);
+  const lastMousePoint = useRef<L.Point | null>(null);
+  const rafId = useRef<number | null>(null);
+
+  useEffect(() => {
+    // Disable Leaflet's native scroll wheel zoom - we'll handle it ourselves
+    map.scrollWheelZoom.disable();
+
     const container = map.getContainer();
+
+    const applySmoothedZoom = () => {
+      if (Math.abs(zoomAccumulator.current) > 0.001 && lastMousePoint.current) {
+        const currentZoom = map.getZoom();
+        // Apply 70% of accumulated zoom (smoothing)
+        const zoomToApply = zoomAccumulator.current * 0.7;
+        zoomAccumulator.current -= zoomToApply;
+
+        const newZoom = Math.max(-3, Math.min(2, currentZoom + zoomToApply));
+        map.setZoomAround(lastMousePoint.current, newZoom, { animate: false });
+
+        // Continue smoothing if there's remaining zoom
+        if (Math.abs(zoomAccumulator.current) > 0.001) {
+          rafId.current = requestAnimationFrame(applySmoothedZoom);
+        } else {
+          zoomAccumulator.current = 0;
+          rafId.current = null;
+        }
+      }
+    };
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
+      e.stopPropagation();
 
-      // Pinch gesture on trackpad sets ctrlKey to true
+      // Pinch gesture (ctrlKey) = zoom
       if (e.ctrlKey || e.metaKey) {
-        // Pinch to zoom
-        const zoom = map.getZoom();
-        const delta = -e.deltaY * 0.01;
-        map.setZoom(zoom + delta, { animate: false });
+        // Accumulate zoom delta
+        zoomAccumulator.current += -e.deltaY * 0.02;
+
+        // Store mouse position for zoom centering
+        const rect = container.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        lastMousePoint.current = L.point(mouseX, mouseY);
+
+        // Start smoothed zoom if not already running
+        if (!rafId.current) {
+          rafId.current = requestAnimationFrame(applySmoothedZoom);
+        }
+
+        // Also pan if there's horizontal movement during pinch
+        if (Math.abs(e.deltaX) > 0.5) {
+          map.panBy([e.deltaX * 0.5, 0], { animate: false });
+        }
       } else {
-        // Two-finger scroll to pan
+        // Two-finger scroll = pan
         map.panBy([e.deltaX, e.deltaY], { animate: false });
       }
     };
@@ -83,6 +164,10 @@ function TrackpadHandler() {
 
     return () => {
       container.removeEventListener('wheel', handleWheel);
+      if (rafId.current) {
+        cancelAnimationFrame(rafId.current);
+      }
+      map.scrollWheelZoom.enable();
     };
   }, [map]);
 
@@ -129,6 +214,7 @@ export default function App() {
   const [modalMode, setModalMode] = useState<'import' | 'export' | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [placesMenuOpen, setPlacesMenuOpen] = useState(false);
 
   // Hover preview state
   const [hoveredMarker, setHoveredMarker] = useState<Marker | null>(null);
@@ -159,6 +245,67 @@ export default function App() {
       initialZoom: mapConfig.currentLocation.zoom,
     };
   }, [markers, mapConfig]);
+
+  // Zoom level for marker visibility
+  const [currentZoom, setCurrentZoom] = useState(initialZoom);
+
+  // Filter markers based on zoom level
+  const zoomFilteredMarkers = useMemo(() => {
+    return filteredMarkers.filter(marker => {
+      const threshold = ZOOM_THRESHOLDS[marker.type];
+      return currentZoom >= threshold;
+    });
+  }, [filteredMarkers, currentZoom]);
+
+  // Pre-search position for restoring after clearing search
+  const preSearchPositionRef = useRef<{ center: L.LatLng; zoom: number } | null>(null);
+  const wasSearchingRef = useRef(false);
+
+  // Zoom to single search result, restore position when clearing
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    const isSearching = filters.search.length > 0;
+    const wasSearching = wasSearchingRef.current;
+
+    // Starting a new search - save current position
+    if (isSearching && !wasSearching) {
+      preSearchPositionRef.current = {
+        center: mapRef.current.getCenter(),
+        zoom: mapRef.current.getZoom(),
+      };
+    }
+
+    // If searching and exactly one result, zoom to it
+    if (isSearching && zoomFilteredMarkers.length === 1) {
+      const marker = zoomFilteredMarkers[0];
+      const pos = toLeaflet(marker.x, marker.y);
+      // Zoom to a level that shows the marker type
+      const targetZoom = Math.max(ZOOM_THRESHOLDS[marker.type] + 0.5, 0);
+      mapRef.current.setView(pos, targetZoom, { animate: true });
+    }
+
+    // Clearing search - restore previous position
+    if (!isSearching && wasSearching && preSearchPositionRef.current) {
+      mapRef.current.setView(
+        preSearchPositionRef.current.center,
+        preSearchPositionRef.current.zoom,
+        { animate: true }
+      );
+      preSearchPositionRef.current = null;
+    }
+
+    wasSearchingRef.current = isSearching;
+  }, [filters.search, zoomFilteredMarkers]);
+
+  // Navigate to a specific marker (from places menu)
+  const goToMarker = useCallback((marker: Marker) => {
+    if (mapRef.current) {
+      const pos = toLeaflet(marker.x, marker.y);
+      const targetZoom = Math.max(ZOOM_THRESHOLDS[marker.type] + 0.5, 0);
+      mapRef.current.setView(pos, targetZoom, { animate: true });
+    }
+  }, []);
 
   // Navigation functions
   const goToCurrentLocation = useCallback(() => {
@@ -323,18 +470,19 @@ export default function App() {
         crs={L.CRS.Simple}
         minZoom={-3}
         maxZoom={2}
-        zoomSnap={0.1}
-        zoomDelta={0.25}
-        scrollWheelZoom={false}
-        inertia={true}
-        inertiaDeceleration={2000}
+        zoomSnap={0.01}
+        zoomDelta={0.5}
+        wheelPxPerZoomLevel={6}
+        scrollWheelZoom={true}
+        inertia={false}
         bounceAtZoomLimits={false}
         maxBounds={[[-500, -500], [mapConfig.imageHeight + 500, mapConfig.imageWidth + 500]]}
-        maxBoundsViscosity={0.8}
+        maxBoundsViscosity={0.5}
         className="w-full h-full"
       >
         <MapController mapRef={mapRef} />
-        <TrackpadHandler />
+        <TrackpadGestureHandler />
+        <ZoomTracker onZoomChange={setCurrentZoom} />
         <MapEvents
           editMode={editMode}
           onMapClick={handleMapClick}
@@ -342,8 +490,8 @@ export default function App() {
         />
         <ImageOverlay url="/elvensong-map/World Map.jpg" bounds={imageBounds} />
 
-        {/* Markers */}
-        {filteredMarkers.map((marker) => (
+        {/* Markers - filtered by zoom level */}
+        {zoomFilteredMarkers.map((marker) => (
           <MapMarker
             key={marker.id}
             marker={marker}
@@ -357,16 +505,31 @@ export default function App() {
         ))}
       </MapContainer>
 
+      {/* Places Menu */}
+      <PlacesMenu
+        markers={markers}
+        onSelectPlace={goToMarker}
+        isOpen={placesMenuOpen}
+        onOpenChange={setPlacesMenuOpen}
+      />
+
+      {/* Mini Map */}
+      <MiniMap
+        mapRef={mapRef}
+        imageWidth={mapConfig.imageWidth}
+        imageHeight={mapConfig.imageHeight}
+      />
+
       {/* Search Bar */}
       <SearchBar
         value={filters.search}
         onChange={setSearch}
-        resultCount={filteredMarkers.length}
+        resultCount={zoomFilteredMarkers.length}
         totalCount={markers.length}
       />
 
       {/* Legend */}
-      <Legend filters={filters.types} onToggle={toggleTypeFilter} />
+      <Legend filters={filters.types} onToggle={toggleTypeFilter} menuOpen={placesMenuOpen} />
 
       {/* Control Panel */}
       <ControlPanel

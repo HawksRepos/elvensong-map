@@ -55,7 +55,11 @@ html, body, #root {
   border-top-color: #2d2d44;
 }
 
-/* Zoom controls */
+/* Zoom controls - positioned below places menu button */
+.leaflet-top.leaflet-left {
+  top: 50px !important;
+}
+
 .leaflet-control-zoom {
   border: none !important;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
