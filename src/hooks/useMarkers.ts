@@ -1,7 +1,9 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
+import Fuse from 'fuse.js';
 import { Marker, MarkerType, MarkerFilters, MapConfig } from '../types';
 import { useLocalStorage } from './useLocalStorage';
 import { useUndoRedo } from './useUndoRedo';
+import { useDebounce } from './useDebounce';
 import { DEFAULT_MARKERS, MAP_CONFIG } from '../data/markers';
 import { fetchMapData } from '../utils/fetchMapData';
 
@@ -78,23 +80,36 @@ export function useMarkers() {
     setSavedMarkers(markers);
   }, [markers, setSavedMarkers]);
 
-  // Filter markers based on search and type filters
+  // Debounce search for better performance
+  const debouncedSearch = useDebounce(filters.search, 150);
+
+  // Filter markers based on search and type filters (using fuzzy search)
   const filteredMarkers = useMemo(() => {
-    return markers.filter(marker => {
-      // Type filter
-      if (!filters.types[marker.type]) {
-        return false;
-      }
+    // Guard against undefined markers
+    if (!markers || !Array.isArray(markers)) {
+      return [];
+    }
 
-      // Search filter
-      if (filters.search) {
-        const searchLower = filters.search.toLowerCase();
-        return marker.name.toLowerCase().includes(searchLower);
-      }
+    // First, filter by type
+    const typeFiltered = markers.filter(marker => filters.types[marker.type]);
 
-      return true;
+    // If no search term, return type-filtered results
+    if (!debouncedSearch || debouncedSearch.trim().length < 2) {
+      return typeFiltered;
+    }
+
+    // Perform fuzzy search on type-filtered markers
+    const fuse = new Fuse(typeFiltered, {
+      keys: ['name', 'description'],
+      threshold: 0.4, // 0 = exact match, 1 = match anything
+      includeScore: true,
+      ignoreLocation: true,
+      minMatchCharLength: 2,
     });
-  }, [markers, filters]);
+
+    const searchResults = fuse.search(debouncedSearch.trim());
+    return searchResults.map(result => result.item);
+  }, [markers, filters.types, debouncedSearch]);
 
   // Add a new marker
   const addMarker = useCallback((marker: Omit<Marker, 'id'>) => {
@@ -203,9 +218,13 @@ export function useMarkers() {
     await refreshFromSource(true);
   }, [refreshFromSource]);
 
+  // Ensure markers is always an array
+  const safeMarkers = markers ?? [];
+  const safeFilteredMarkers = filteredMarkers ?? [];
+
   return {
-    markers,
-    filteredMarkers,
+    markers: safeMarkers,
+    filteredMarkers: safeFilteredMarkers,
     filters,
     mapConfig,
     isLoading,

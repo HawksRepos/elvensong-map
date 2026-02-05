@@ -1,4 +1,5 @@
-import { MapPin, Map, Edit, Undo, Redo, Download, Upload, RotateCcw, ExternalLink, RefreshCw } from 'lucide-react';
+import { useState } from 'react';
+import { MapPin, Map, Edit, Undo, Redo, Download, Upload, RotateCcw, ExternalLink, RefreshCw, Share2, Check } from 'lucide-react';
 
 interface ControlPanelProps {
   editMode: boolean;
@@ -14,6 +15,7 @@ interface ControlPanelProps {
   onImport: () => void;
   onReset: () => void;
   onRefresh?: () => void;
+  onShare?: () => Promise<boolean>;
 }
 
 export function ControlPanel({
@@ -30,7 +32,20 @@ export function ControlPanel({
   onImport,
   onReset,
   onRefresh,
+  onShare,
 }: ControlPanelProps) {
+  const [shareSuccess, setShareSuccess] = useState(false);
+
+  const handleShare = async () => {
+    if (onShare) {
+      const success = await onShare();
+      if (success) {
+        setShareSuccess(true);
+        setTimeout(() => setShareSuccess(false), 2000);
+      }
+    }
+  };
+
   return (
     <div className="fixed bottom-5 right-5 flex flex-col gap-1.5 sm:gap-2 z-[1000]">
       {/* Campaign Link */}
@@ -61,6 +76,33 @@ export function ControlPanel({
         <span className="hidden sm:inline">Full Map</span>
         <span className="sm:hidden">Full</span>
       </button>
+
+      {/* Share Current View */}
+      {onShare && (
+        <button
+          onClick={handleShare}
+          className={`flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg shadow-xl transition-colors text-sm sm:text-base ${
+            shareSuccess
+              ? 'bg-green-600 text-white'
+              : 'bg-dark-panel text-white hover:bg-dark-hover'
+          }`}
+          title="Copy link to current view"
+        >
+          {shareSuccess ? (
+            <>
+              <Check size={16} className="sm:w-[18px] sm:h-[18px]" />
+              <span className="hidden sm:inline">Link Copied!</span>
+              <span className="sm:hidden">Copied</span>
+            </>
+          ) : (
+            <>
+              <Share2 size={16} className="sm:w-[18px] sm:h-[18px]" />
+              <span className="hidden sm:inline">Share View</span>
+              <span className="sm:hidden">Share</span>
+            </>
+          )}
+        </button>
+      )}
 
       {/* Refresh from Obsidian */}
       {onRefresh && (

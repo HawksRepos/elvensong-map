@@ -8,3 +8,4 @@ export { ConfirmModal } from './ConfirmModal';
 export { HoverPreview } from './HoverPreview';
 export { PlacesMenu } from './PlacesMenu';
 export { MiniMap } from './MiniMap';
+export { ErrorBoundary } from './ErrorBoundary';

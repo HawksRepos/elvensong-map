@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 interface UseUndoRedoResult<T> {
   state: T;
@@ -13,8 +13,21 @@ interface UseUndoRedoResult<T> {
 export function useUndoRedo<T>(initialState: T, maxHistory: number = 50): UseUndoRedoResult<T> {
   const [history, setHistory] = useState<T[]>([initialState]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const isFirstMount = useRef(true);
 
-  const state = history[currentIndex];
+  // Update history when initialState changes (e.g., when loaded from localStorage)
+  useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      // On first mount, if initialState differs from current history[0], reset
+      if (JSON.stringify(initialState) !== JSON.stringify(history[0])) {
+        setHistory([initialState]);
+        setCurrentIndex(0);
+      }
+    }
+  }, [initialState]);
+
+  const state = history[currentIndex] ?? initialState;
 
   const setState = useCallback((newState: T) => {
     setHistory(prev => {

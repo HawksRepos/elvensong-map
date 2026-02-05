@@ -33,6 +33,8 @@ import {
   MiniMap,
 } from './components';
 import { getWikiUrl } from './utils/urls';
+import { generateShareUrl, copyToClipboard, parseShareUrl } from './utils/shareUrl';
+import { fromLeaflet as coordsFromLeaflet } from './utils/coordinates';
 
 // Component to handle map events
 function MapEvents({
@@ -223,10 +225,19 @@ export default function App() {
 
   // Get initial location from URL params or default to current location
   const { initialCenter, initialZoom } = useMemo(() => {
+    // Check for share URL params first (x, y, z coordinates)
+    const shareParams = parseShareUrl();
+    if (shareParams) {
+      return {
+        initialCenter: toLeaflet(shareParams.x, shareParams.y),
+        initialZoom: shareParams.zoom,
+      };
+    }
+
     const params = new URLSearchParams(window.location.search);
     const locationName = params.get('location');
 
-    if (locationName) {
+    if (locationName && markers && Array.isArray(markers)) {
       // Find marker by name (case-insensitive)
       const targetMarker = markers.find(
         m => m.name.toLowerCase() === locationName.toLowerCase()
@@ -251,6 +262,9 @@ export default function App() {
 
   // Filter markers based on zoom level
   const zoomFilteredMarkers = useMemo(() => {
+    if (!filteredMarkers || !Array.isArray(filteredMarkers)) {
+      return [];
+    }
     return filteredMarkers.filter(marker => {
       const threshold = ZOOM_THRESHOLDS[marker.type];
       return currentZoom >= threshold;
@@ -319,6 +333,23 @@ export default function App() {
     if (mapRef.current) {
       mapRef.current.fitBounds(imageBounds, { animate: true, padding: [20, 20] });
     }
+  }, [imageBounds]);
+
+  // Share current view
+  const handleShare = useCallback(async (): Promise<boolean> => {
+    if (!mapRef.current) return false;
+
+    const center = mapRef.current.getCenter();
+    const zoom = mapRef.current.getZoom();
+    // Convert Leaflet coords back to image coords
+    const { x, y } = coordsFromLeaflet(center.lat, center.lng);
+
+    const shareUrl = generateShareUrl({
+      x: Math.round(x),
+      y: Math.round(y),
+      zoom,
+    });
+    return await copyToClipboard(shareUrl);
   }, []);
 
   // Edit mode handlers
@@ -334,6 +365,7 @@ export default function App() {
   }, []);
 
   const handleMarkerRightClick = useCallback((id: string) => {
+    if (!markers) return;
     const marker = markers.find((m) => m.id === id);
     if (marker) {
       setEditingMarker(marker);
@@ -525,7 +557,7 @@ export default function App() {
         value={filters.search}
         onChange={setSearch}
         resultCount={zoomFilteredMarkers.length}
-        totalCount={markers.length}
+        totalCount={markers?.length ?? 0}
       />
 
       {/* Legend */}
@@ -546,6 +578,7 @@ export default function App() {
         onImport={() => setModalMode('import')}
         onReset={() => setShowResetConfirm(true)}
         onRefresh={() => refreshFromSource(true)}
+        onShare={handleShare}
       />
 
       {/* Edit Mode Banner */}
@@ -604,7 +637,7 @@ export default function App() {
       {showDeleteConfirm && (
         <ConfirmModal
           title="Delete Marker"
-          message={`Are you sure you want to delete "${markers.find((m) => m.id === showDeleteConfirm)?.name}"?`}
+          message={`Are you sure you want to delete "${markers?.find((m) => m.id === showDeleteConfirm)?.name ?? 'this marker'}"?`}
           confirmLabel="Delete"
           onConfirm={confirmDeleteMarker}
           onCancel={() => setShowDeleteConfirm(null)}
