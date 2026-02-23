@@ -3,7 +3,7 @@ import { Marker, MapConfig } from '../types';
 export const MAP_CONFIG: MapConfig = {
   imageWidth: 8192,
   imageHeight: 8192,
-  publishBaseUrl: 'https://publish.obsidian.md/elvensong/',
+  publishBaseUrl: 'https://elvensong.uk/',
   currentLocation: {
     name: 'Treston',
     x: 1734,
